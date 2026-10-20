@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  products Product[]
+
+  @@index([slug])
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Decimal
+  stock       Int      @default(0)
+  imageUrl    String?
+  categoryId  Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    Category? @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+
+  @@index([categoryId])
+  @@index([isActive])
+}
+
+model Order {
+  id             Int      @id @default(autoincrement())
+  orderNumber    String   @unique
+  customerName   String
+  customerPhone  String
+  customerAddress String
+  total          Decimal
+  status         String   @default("PENDING")
+  paymentMethod  String   @default("CASH")
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  orderItems OrderItem[]
+
+  @@index([orderNumber])
+  @@index([status])
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  quantity  Int
+  price     Decimal
+
+  order    Order @relation(fields: [orderId], references: [id])
+  product  Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model CustomOrder {
+  id               Int      @id @default(autoincrement())
+  description      String
+  estimatedQuantity Int     @default(1)
+  customerName     String
+  customerPhone    String
+  notes            String?
+  status           String   @default("NEW")
+  createdAt        DateTime @default(now())
+
+  @@index([status])
+}
+
+model BusinessConfig {
+  id             Int      @id @default(1)
+  businessName   String   @default("Ferretería La Esquina")
+  address        String?
+  phone          String?
+  whatsappNumber String?
+  schedule       String?
+  updatedAt      DateTime @updatedAt
+}
