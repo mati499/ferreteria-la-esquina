@@ -69,9 +69,9 @@ export default async function BusinessInfoPage() {
             ¿Tienes alguna pregunta sobre nuestros productos o precios?
             Escríbenos directamente por WhatsApp.
           </p>
-          {config.whatsappNumber ? (
+          {config.whatsapp_number ? (
             <a
-              href={`https://wa.me/${config.whatsappNumber}?text=Hola%20Ferreter%C3%ADa%20La%20Esquina,%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos`}
+              href={`https://wa.me/${config.whatsapp_number}?text=Hola%20Ferreter%C3%ADa%20La%20Esquina,%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition"

@@ -29,39 +29,25 @@ export function ImageUpload({
     async (file: File) => {
       setUploading(true)
       try {
-        if (uploadAction) {
-          // Usar Server Action con clave de servicio (bypassa RLS de Storage)
-          const formData = new FormData()
-          formData.append('file', file)
-          formData.append('productId', productId || '')
+        // Subida directa vía API Route (evita límites de Server Action de Next.js)
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('productId', productId || '')
 
-          const result = await uploadAction(formData)
-          if (result.error) throw new Error(result.error)
-          if (result.url) {
-            setPreview(result.url)
-            onChange(result.url)
-          }
-        } else {
-          // Fallback: subir directo desde el cliente (sujeto a RLS)
-          const fileExt = file.name.split('.').pop()
-          const folder = productId || 'temp'
-          const fileName = `${folder}/${Date.now()}.${fileExt}`
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
 
-          const { error: uploadError } = await supabase.storage
-            .from('product-images')
-            .upload(fileName, file, {
-              cacheControl: '3600',
-              upsert: false,
-            })
+        const result = await res.json()
 
-          if (uploadError) throw uploadError
+        if (!res.ok || result.error) {
+          throw new Error(result.error || 'Error al subir la imagen')
+        }
 
-          const { data: urlData } = supabase.storage
-            .from('product-images')
-            .getPublicUrl(fileName)
-
-          setPreview(urlData.publicUrl)
-          onChange(urlData.publicUrl)
+        if (result.url) {
+          setPreview(result.url)
+          onChange(result.url)
         }
       } catch (err: any) {
         console.error('Error subiendo imagen:', err)
@@ -70,7 +56,7 @@ export function ImageUpload({
         setUploading(false)
       }
     },
-    [productId, onChange, supabase, uploadAction]
+    [productId, onChange]
   )
 
   const removeImage = useCallback(() => {
@@ -129,7 +115,13 @@ export function ImageUpload({
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0]
-              if (file) uploadImage(file)
+              if (!file) return
+              const maxSize = 10 * 1024 * 1024 // 10 MB
+              if (file.size > maxSize) {
+                alert(`La imagen es demasiado grande (${Math.round(file.size / 1024 / 1024)}MB). Máximo permitido: 10MB.`)
+                return
+              }
+              uploadImage(file)
             }}
           />
         </label>
@@ -142,7 +134,7 @@ export function ImageUpload({
           </div>
         )}
         <p className="text-xs text-muted-foreground">
-          Máximo 5MB. Formatos: JPG, PNG, WEBP.
+          Máximo 10MB. Formatos: JPG, PNG, WEBP.
         </p>
       </div>
     </div>

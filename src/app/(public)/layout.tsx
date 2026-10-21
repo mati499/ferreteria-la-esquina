@@ -65,7 +65,7 @@ export default function PublicLayout({
             <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
               FE
             </div>
-            <span className="font-bold text-lg tracking-tight">Ferretería La Esquina</span>
+            <span className="font-bold text-lg tracking-tight">{config?.business_name || 'Ferretería La Esquina'}</span>
           </div>
 
           <div className="hidden md:flex items-center gap-6">
@@ -170,9 +170,9 @@ export default function PublicLayout({
             </div>
             <div>
               <h4 className="mb-4 font-semibold">Contacto por WhatsApp</h4>
-              {config?.whatsappNumber ? (
+              {config?.whatsapp_number ? (
                 <a
-                  href={`https://wa.me/${config.whatsappNumber}`}
+                  href={`https://wa.me/${config.whatsapp_number}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-primary hover:underline"
@@ -185,7 +185,7 @@ export default function PublicLayout({
             </div>
           </div>
           <div className="mt-8 pt-6 border-t text-xs text-muted-foreground">
-            Ferretería La Esquina. Todos los derechos reservados.
+            {config?.business_name || 'Ferretería La Esquina'}. Todos los derechos reservados.
           </div>
         </div>
       </footer>

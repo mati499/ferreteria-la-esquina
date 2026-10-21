@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { createProduct, uploadProductImage, deleteProductImage } from '@/app/admin/actions'
-import { ArrowLeft, Image as ImageIcon } from 'lucide-react'
+import { createProduct, createCategory, uploadProductImage, deleteProductImage } from '@/app/admin/actions'
+import { ArrowLeft, Image as ImageIcon, Plus } from 'lucide-react'
 import { ImageUpload } from '@/components/products/image-upload'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -16,6 +16,7 @@ const productSchema = z.object({
   description: z.string().optional(),
   price: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, 'Precio inválido'),
   stock: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, 'Stock inválido'),
+  low_stock_threshold: z.string().optional(),
   category_id: z.string().optional(),
   is_active: z.boolean(),
 })
@@ -24,6 +25,9 @@ export default function NewProductPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showNewCategory, setShowNewCategory] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategorySlug, setNewCategorySlug] = useState('')
 
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
@@ -32,6 +36,7 @@ export default function NewProductPage() {
       description: '',
       price: '',
       stock: '',
+      low_stock_threshold: '5',
       category_id: '',
       is_active: true,
     },
@@ -46,6 +51,26 @@ export default function NewProductPage() {
     setCategories(data || [])
   }
 
+  async function handleCreateCategory() {
+    if (!newCategoryName.trim() || newCategoryName.trim().length < 2) {
+      alert('Nombre de categoría requerido.')
+      return
+    }
+    const slug = newCategorySlug.trim() || newCategoryName.toLowerCase().replace(/\s+/g, '-')
+
+    const { error } = await createCategory({ name: newCategoryName.trim(), slug })
+    if (error) {
+      alert('Error al crear categoría: ' + error)
+      return
+    }
+
+    setShowNewCategory(false)
+    setNewCategoryName('')
+    setNewCategorySlug('')
+    loadCategories()
+    alert('Categoría creada correctamente')
+  }
+
   async function handleSubmit(values: z.infer<typeof productSchema>) {
     setIsSubmitting(true)
     try {
@@ -54,6 +79,7 @@ export default function NewProductPage() {
         description: values.description || null,
         price: Number(values.price),
         stock: Number(values.stock),
+        low_stock_threshold: values.low_stock_threshold ? Number(values.low_stock_threshold) : 5,
         image_url: imageUrl,
         category_id: values.category_id || null,
         is_active: values.is_active,
@@ -95,7 +121,16 @@ export default function NewProductPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Categoría</label>
+              <label className="text-sm font-medium flex items-center gap-2">
+                <span>Categoría</span>
+                <button
+                  type="button"
+                  onClick={() => setShowNewCategory(!showNewCategory)}
+                  className="ml-2 text-xs text-primary hover:underline"
+                >
+                  {showNewCategory ? 'Ocultar' : 'Crear nueva categoría'}
+                </button>
+              </label>
               <select
                 {...form.register('category_id')}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -108,6 +143,39 @@ export default function NewProductPage() {
                 ))}
               </select>
             </div>
+
+            {showNewCategory && (
+              <div className="space-y-2 border border-input rounded-lg p-4 bg-secondary/50">
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">Nombre</label>
+                    <input
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      placeholder="Ej: Fontanería"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-muted-foreground">Slug</label>
+                    <input
+                      value={newCategorySlug}
+                      onChange={(e) => setNewCategorySlug(e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      placeholder="ej: fontaneria"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCreateCategory}
+                  className="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground text-xs font-medium rounded-md hover:bg-primary/90 transition"
+                >
+                  <Plus size={14} /> Guardar categoría
+                </button>
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-2">
@@ -148,6 +216,19 @@ export default function NewProductPage() {
               {form.formState.errors.stock && (
                 <p className="text-xs text-destructive">{form.formState.errors.stock.message}</p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Umbral de stock bajo</label>
+              <input
+                {...form.register('low_stock_threshold')}
+                type="number"
+                min="0"
+                step="1"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="5"
+              />
+              <p className="text-xs text-muted-foreground">Avisa cuando el stock baje de este número</p>
             </div>
 
             <div className="space-y-2">

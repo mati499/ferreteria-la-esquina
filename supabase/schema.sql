@@ -22,6 +22,7 @@ create table products (
   image_url text,
   category_id uuid references categories(id) on delete set null,
   is_active boolean not null default true,
+  low_stock_threshold integer default 5,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

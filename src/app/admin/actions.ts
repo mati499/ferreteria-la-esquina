@@ -11,6 +11,7 @@ export type ProductInput = {
   image_url: string | null
   category_id: string | null
   is_active: boolean
+  low_stock_threshold?: number
 }
 
 async function requireAdmin() {
@@ -61,6 +62,7 @@ export async function createProduct(input: ProductInput) {
       image_url: input.image_url || null,
       category_id: input.category_id || null,
       is_active: Boolean(input.is_active),
+      low_stock_threshold: input.low_stock_threshold ?? 5,
     })
 
     if (error) return { error: error.message }
@@ -79,6 +81,7 @@ export type ProductUpdateInput = {
   image_url: string | null
   category_id: string | null
   is_active: boolean
+  low_stock_threshold?: number
 }
 
 export async function updateProduct(input: ProductUpdateInput) {
@@ -111,6 +114,7 @@ export async function updateProduct(input: ProductUpdateInput) {
         image_url: input.image_url || null,
         category_id: input.category_id || null,
         is_active: Boolean(input.is_active),
+        low_stock_threshold: input.low_stock_threshold ?? 5,
       })
       .eq('id', input.id)
 

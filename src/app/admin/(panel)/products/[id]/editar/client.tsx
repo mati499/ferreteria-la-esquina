@@ -16,6 +16,7 @@ const productSchema = z.object({
   description: z.string().optional(),
   price: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, 'Precio inválido'),
   stock: z.string().refine((val) => !isNaN(Number(val)) && Number(val) >= 0, 'Stock inválido'),
+  low_stock_threshold: z.string().optional(),
   category_id: z.string().optional(),
   is_active: z.boolean(),
 })
@@ -34,6 +35,7 @@ export default function EditProductClient({ productId }: { productId: string }) 
       description: '',
       price: '',
       stock: '',
+      low_stock_threshold: '5',
       category_id: '',
       is_active: true,
     },
@@ -57,6 +59,7 @@ export default function EditProductClient({ productId }: { productId: string }) 
         description: prodRes.data.description || '',
         price: prodRes.data.price?.toString() || '',
         stock: prodRes.data.stock?.toString() || '',
+        low_stock_threshold: prodRes.data.low_stock_threshold?.toString() || '5',
         category_id: prodRes.data.category_id || '',
         is_active: prodRes.data.is_active,
       })
@@ -73,6 +76,7 @@ export default function EditProductClient({ productId }: { productId: string }) 
         description: values.description || null,
         price: Number(values.price),
         stock: Number(values.stock),
+        low_stock_threshold: values.low_stock_threshold ? Number(values.low_stock_threshold) : 5,
         image_url: imageUrl,
         category_id: values.category_id || null,
         is_active: values.is_active,
@@ -187,6 +191,19 @@ export default function EditProductClient({ productId }: { productId: string }) 
               {form.formState.errors.stock && (
                 <p className="text-xs text-destructive">{form.formState.errors.stock.message}</p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Umbral de stock bajo</label>
+              <input
+                {...form.register('low_stock_threshold')}
+                type="number"
+                min="0"
+                step="1"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="5"
+              />
+              <p className="text-xs text-muted-foreground">Avisa cuando el stock baje de este número</p>
             </div>
 
             <div className="space-y-2">

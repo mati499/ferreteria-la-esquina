@@ -87,6 +87,7 @@ export default function ProductsPage() {
               <th className="pb-3 font-medium">Categoría</th>
               <th className="pb-3 font-medium text-right">Precio</th>
               <th className="pb-3 font-medium text-center">Stock</th>
+              <th className="pb-3 font-medium text-center">Umbral bajo</th>
               <th className="pb-3 font-medium text-center">Estado</th>
               <th className="pb-3 font-medium text-right">Acciones</th>
             </tr>
@@ -105,12 +106,23 @@ export default function ProductsPage() {
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       p.stock === 0
                         ? 'bg-destructive/10 text-destructive'
-                        : p.stock <= 5
+                        : p.low_stock_threshold && p.stock <= p.low_stock_threshold
                           ? 'bg-warning/10 text-warning'
                           : 'bg-success/10 text-success'
                     }`}
+                    title={
+                      p.low_stock_threshold && p.stock <= p.low_stock_threshold
+                        ? `Stock bajo (umbral: ${p.low_stock_threshold})`
+                        : ''
+                    }
                   >
                     {p.stock}
+                    {p.low_stock_threshold && p.stock <= p.low_stock_threshold && p.stock > 0 ? ' ⚠️' : ''}
+                  </span>
+                </td>
+                <td className="py-4 text-center">
+                  <span className="text-xs text-muted-foreground">
+                    {p.low_stock_threshold ?? 5}
                   </span>
                 </td>
                 <td className="py-4 text-center">

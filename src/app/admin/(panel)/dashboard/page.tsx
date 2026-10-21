@@ -1,20 +1,36 @@
 import { supabase } from '@/lib/supabase'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Package, CreditCard, AlertTriangle, DollarSign, Users } from 'lucide-react'
+import {
+  Package,
+  CreditCard,
+  AlertTriangle,
+  DollarSign,
+  Users,
+  ArrowRight,
+} from 'lucide-react'
+import Link from 'next/link'
 
 export default async function DashboardPage() {
-  const [ordersRes, productsRes, lowStockRes] = await Promise.all([
+  const [ordersRes, productsRes] = await Promise.all([
     supabase
       .from('orders')
       .select('id, order_number, customer_name, status, total')
       .eq('status', 'PENDING'),
-    supabase.from('products').select('id').eq('is_active', true),
-    supabase.from('products').select('id').lte('stock', 5).eq('is_active', true),
+    supabase
+      .from('products')
+      .select('id, name, stock, low_stock_threshold')
+      .eq('is_active', true),
   ])
 
   const pendingOrders = ordersRes.data || []
-  const activeProducts = productsRes.data || []
-  const lowStockProducts = lowStockRes.data || []
+  const products = productsRes.data || []
+
+  // Filtrar productos con stock bajo usando el umbral de cada producto
+  const lowStockProducts = products.filter(
+    (p: any) => p.stock <= (p.low_stock_threshold ?? 5),
+  )
+
+  const activeProducts = products.length
 
   const totalSales = pendingOrders.reduce(
     (sum: number, o: any) => sum + Number(o.total || 0),
@@ -75,6 +91,50 @@ export default async function DashboardPage() {
         ))}
       </div>
 
+      {/* Productos con stock bajo */}
+      {lowStockProducts.length > 0 && (
+        <Card className="border-destructive/50">
+          <CardHeader className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold text-destructive">
+              ⚠️ Productos con stock bajo ({lowStockProducts.length})
+            </CardTitle>
+            <Link
+              href="/admin/products"
+              className="text-xs text-primary hover:underline"
+            >
+              Ver todos <ArrowRight size={14} />
+            </Link>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {lowStockProducts.slice(0, 5).map((p: any) => (
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between p-2 rounded bg-secondary/50 text-sm"
+                >
+                  <div className="flex-1 truncate mr-2">
+                    {p.name}
+                  </div>
+                  <div className="flex items-center gap-2 text-right">
+                    <span className="font-medium text-destructive">
+                      {p.stock}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      (máx. {p.low_stock_threshold ?? 5})
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {lowStockProducts.length > 5 && (
+                <div className="text-center text-xs text-muted-foreground">
+                  y {lowStockProducts.length - 5} más...
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -91,7 +151,12 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary hover:bg-secondary/80 cursor-pointer transition">
               <AlertTriangle size={18} />
-              <span>Revisar stock bajo</span>
+              <Link
+                href="/admin/products"
+                className="flex-1 text-primary hover:underline"
+              >
+                Revisar stock bajo
+              </Link>
             </div>
           </CardContent>
         </Card>

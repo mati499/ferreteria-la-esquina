@@ -37,7 +37,7 @@ export default async function HomePage() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold mb-4">
-            Ferretería La Esquina
+            {config?.business_name || 'Ferretería La Esquina'}
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Todo lo que necesitas para tu hogar, obra o taller en un solo lugar.
@@ -57,10 +57,10 @@ export default async function HomePage() {
               Info del negocio
             </Link>
           </div>
-          {config?.whatsappNumber && (
+          {config?.whatsapp_number && (
             <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href={`https://wa.me/${config.whatsappNumber}?text=Hola%20Ferreter%C3%ADa%20La%20Esquina,%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos`}
+                href={`https://wa.me/${config.whatsapp_number}?text=Hola%20Ferreter%C3%ADa%20La%20Esquina,%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-success text-success-foreground rounded-lg font-medium hover:bg-success/90 transition"
@@ -103,9 +103,9 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {config?.whatsappNumber && (
+      {config?.whatsapp_number && (
         <a
-          href={`https://wa.me/${config.whatsappNumber}?text=Hola%20Ferreter%C3%ADa%20La%20Esquina,%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos`}
+          href={`https://wa.me/${config.whatsapp_number}?text=Hola%20Ferreter%C3%ADa%20La%20Esquina,%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20sus%20productos`}
           target="_blank"
           rel="noopener noreferrer"
           className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 bg-success text-success-foreground rounded-full font-medium shadow-lg hover:bg-success/90 transition transform hover:scale-105"
